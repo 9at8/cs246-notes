@@ -340,6 +340,7 @@ Node::Node (Node &&o) : data{o.data}, next{o.next} {
   o.next = nullptr;
   // set o.next to nullptr so that the chain of data isn't removed from memory
 }
+```
 
 ### Move Assignment operator
 What happens when we already have an object which in initialized? We also need to clear up that memory as well.
