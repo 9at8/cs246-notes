@@ -419,13 +419,12 @@ What are our options to fix this?
   1. Give values to initialize with
   2. Provide a default ctor
   3. For heap arrays, switch to array of ptrs
-    ```c++
+
+```c++
 Vec **vp = new Vec*[10];
 vp[0] = new Vec{1,2};
 // doesn't initialize vecs, provides an array of pointers
-    ```
-
-int f(const Node &n) { ... }
+```
 
 Constant objects arise often, especially as functions parameters. If an object is const we can't change its fields. But can we call methods on a const objects? The issue is a method may modiify the objects fields through `this` ptr.
 
