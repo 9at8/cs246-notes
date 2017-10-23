@@ -340,6 +340,7 @@ Node::Node (Node &&o) : data{o.data}, next{o.next} {
   o.next = nullptr;
   // set o.next to nullptr so that the chain of data isn't removed from memory
 }
+```
 
 ### Move Assignment operator
 What happens when we already have an object which in initialized? We also need to clear up that memory as well.
@@ -418,6 +419,7 @@ What are our options to fix this?
   1. Give values to initialize with
   2. Provide a default ctor
   3. For heap arrays, switch to array of ptrs
+
 ```c++
 Vec **vp = new Vec*[10];
 vp[0] = new Vec{1,2};
