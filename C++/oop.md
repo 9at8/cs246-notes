@@ -630,3 +630,123 @@ for (auto &n : lst) {
   n = n * 2;
 }
 ```
+
+## Static Members
+A static member is a member of a class whose existence is tied to that class, not to any one individual object.
+
+What if we want to create of type T, where T is some class?
+
+```c++
+// student.h
+struct Student {
+  int assns, mt, final;
+  static int numObject;
+  Student(int assns, int mt, int final) :
+    assns{assns},
+    mt{mt},
+    final{final} {
+    ++numObject;
+  }
+}
+
+// student.cc
+int Student::numObject = 0;
+
+int main() {
+  cout << Student::numObject << endl;
+  Student s{85, 60, 90};
+  cout << Student::numObject << endl;
+}
+```
+
+We not only have static fields, we also have static members
+
+```c++
+class Student {
+  int assns, mt, final;
+  static numObjects;
+
+ public:
+  static int getNumObjects() { return numObjects; }
+}
+```
+
+**Note**: `static` methods receive no `this` pointer as they can't reference non static fields, they aren't declared in that scope!
+
+## Back to Iterator Pattern
+```c++
+class List {
+  class Node {
+    int data;
+    Node *next;
+  };
+
+  Node *next;
+ public:
+  class Iterator {
+    Node *p;
+   public:
+    Iterator(Node *p);
+    int &operator*();
+    Iterator& operator++();
+    bool operator!=(const Iterator &it);
+    Iterator begin();
+    Iterator end();
+    void addToFront(int n);
+  };
+};
+
+// user:
+auto it = List::Iterator(nullptr);
+```
+
+This breaks encapsulation, the user should only be able to create iterators through the methods we've provided to them in our class, `begin()` and `end()`.
+
+If we make the constructor private, `List` can no longer create `Iterator` objects to return in `begin()` and `end()`, if we leave it public we break encapsulation. The solution is **_Friendship!_**
+
+We can declare a class X to be a friend of another class Y and in doing so we give X access to Y's _private parts_.
+
+```c++
+Iterator {
+  Iterator(Node *p)
+  ...
+  ...
+ public:
+  ...
+  Friend class List;
+};
+```
+
+Note to self: Try to have as few friends as possible, **friends weaken encapsulation**.
+
+
+## Getters and Setters
+
+```c++
+class Vec {
+  int x, y;
+ public:
+  ...
+  getX() { return x; }
+  getY() { return y; }
+  setX(int n) { x = n; }
+  setY(int n) { y = n; }
+};
+```
+
+  - If we want our client to be able to read your fields, use accessor methods (getters)
+  - If we want our client to be able to modify our fields, we use mutator methods (setters)
+
+### But what about `operator<<`?
+It needs access to the fields of your class but it can't be a member function. So if you already have `getters` then we can use them. But if we don't, and we don't want to add them to the interface, declare `operator<<` as a `friend`
+
+```c++
+class Vec {
+  int x, y;
+ public:
+  ...
+  Friend std::ostream& operator<<(ostream &o, const Vec &v);
+  // doesn't matter if it's in a public or private.
+};
+```
+
