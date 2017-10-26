@@ -141,7 +141,9 @@ struct Student {
 ```
 
 ### Notes
-  - You can .... Check picture taken on October 3
+  - You can and should initialize any field in the MIL, not just const and refs.
+  - Fields listed in the MIL are initialized in the order in which they're declared in the struct, regardless of the ordering in MIL.
+  - Member initializer lists allow us to initialize our members rather than assign values to them. This is the only way to initialize members that require values upon initialization, such as const or reference members, and it can be more performant than assigning values in the body of the constructor. Member initializer lists work both with fundamental types and members that are classes themselves.
 
 **_Next lecture (missed - Oct 5 2017 thursday):_**
   - destructor

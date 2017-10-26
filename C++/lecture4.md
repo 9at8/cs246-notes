@@ -172,7 +172,17 @@ Compiler flag `-c` "compile only" supresses linking, does not attempt to build e
 int globalVar;
 ```
 
-Problem: every fl... Check picture taken on 28/09/2017
+Problem: every file that includes `abc.h` defines a separate `globalVar`, program will not link.
+
+Solution: put the definition in `cc` file, and declare only in the header file.
+
+```c++
+// abc.h
+extern int globalVar;
+
+// abc.cc
+int globalVar;
+```
 
 
 ## Include guard
