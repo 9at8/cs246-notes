@@ -460,3 +460,26 @@ e->beStruckBy(*w);
 Visitors can be used as a way to provide an arbitrary hook into your class for specialized behaviour
 
 Example: Add a visitor to the `Book` hierarchy that allows for adding functionality without recompiling the classes themselves.
+
+```c++
+class Book { // enemy
+public:
+  virtual void accept(BookVisitor &v) {
+    v.visit(*this);
+  }
+};
+
+class Text : public Book {
+public:
+  void accept(BookVisitor &v) {
+    v.visit(*this);
+  }
+};
+
+class BookVisitor { // weapon
+public:
+  virtual void visit(Text &t) = 0; // strike
+  virtual void visit(Book &t) = 0;
+  virtual void visit(Comic &t) = 0;
+};
+```
