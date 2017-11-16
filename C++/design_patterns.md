@@ -293,6 +293,7 @@ class GreenTurtle: public Turtle {
 Here, subclasses can't handle the way a turtle is drawn, but can specialize drawings shell.
 
 A public virtual method is really 2 things:
+
 1. public:
   - It is an interface to the client
   - It indicates the behaviour we're providing to the clients
@@ -302,9 +303,10 @@ A public virtual method is really 2 things:
   - A "hook" for our derived class to insert specialized behaviour
 
 It is hard to separate these two ideas from each other if they're wrapped up in one method
-  - What if we later decide one of our virtual methods has grown too large and decide to split it into two.
-    - We now have to change not only our class code, but also the client code.
-  - How could we make sure our overriding classes conform pre/post condition? What if they change later? Ugly code duplication
+
+- What if we later decide one of our virtual methods has grown too large and decide to split it into two.
+  - We now have to change not only our class code, but also the client code.
+- How could we make sure our overriding classes conform pre/post condition? What if they change later? Ugly code duplication
 
 ### The Non-Virtual Interface (NVI) idiom
 
@@ -340,6 +342,7 @@ void DigitalMedia::Play() {
 ```
 
 Now if we need exert extra control overplay, we can do it:
+
 - We can add before/after code to run around `doplay()` -> also could be specialized
 - can add more hooks later through more virtual method calls
 - all of this without changing the public interface
@@ -348,4 +351,112 @@ It is much easier to keep control over our interface and virtual methods
 
 So the `NVI` idiom extends the template method pattern saying all virtual methods should be wrapped in a non-virtual method
 
-This is a huge benefit withou any downside
+This is a huge benefit without any downside
+
+## STL Maps - for creating dicts
+
+Example: For creating an `array` that can be indexed by an arbbitrary type, i.e. a `string`
+
+```c++
+#include <map>
+using namespace std;
+
+map<string, int> m;
+m["abc"] = 1; // if key doesn't exist, make it, and assign it 1
+m["df"] = 4;
+
+cout << m["abc"] << endl; // prints 1
+cout << m["ghi"] << endl; // ? -> prints 0
+
+// if a key doesn't exist, it is created and is
+//  default initialized
+
+m.erase("abc"); // removed key/value pair
+if (m.count("abc")) { // returns 0 or 1
+  // do something
+}
+
+for (auto &p : m) {
+  cout << p.first << "," << p.second << endl;
+}
+
+// prints in order based on the key values
+// p's type here is a std::pair<string, int>
+```
+
+## Visitor Pattern
+
+For implementing double dispatch, virtual methods are chosen on the actual run time type of objects. What if we have a function that operates on two objects?
+
+Example: We want to be able to hit an enemy with a weapon.
+
+![Visitor-Pattern-UML](res/VisitorPattern.jpg)
+
+We want something along the lines of `virtual void strike(Weapon &w, Enemy &e)`
+
+If we put the enemy, we only get dispatched on enemies' virtual method
+
+<mark>If we put it in weapon, the trick is to double dispatch it to combine overloading and overriding</mark>
+
+```c++
+class Enemy {
+public:
+  virtual void beStruckBy(Weapon &w) = 0;
+  ...
+};
+
+class Turtle : public Enemy {
+public:
+  void beStruckBy(Weapon &w) override {
+    w.strike(*this);
+  }
+};
+
+class Bullet : public Enemy {
+public:
+  void beStruckBy(Weapon &w) override {
+    w.strike(*this);
+  }
+};
+
+class Weapon {
+  public:
+    virtual void strike(Turtle &t) = 0;
+    virtual void strike(Bullet &b) = 0;
+};
+
+class Stick : public Weapon {
+public:
+  void strike(Turtle &t) override {
+    // hit a Turtle
+  }
+  void strike(Bullet &b) override {
+    // hit a Bullet
+  }
+};
+
+class Rock : public Weapon {
+public:
+  void strike(Turtle &t) override {
+    // hit a Turtle
+  }
+  void strike(Bullet &b) override {
+    // hit a Bullet
+  }
+};
+
+// Client side code
+
+Enemy *e = new Turtle;
+Weapon *w = new Rock;
+e->beStruckBy(*w);
+```
+
+1. Virtuall dispatch calls `Turtle.beStruckBy()`
+2. `Turtle.beStruckBy` calls Weapon's virtual method strike that takes a turtle param (compile time)
+3. Virtual dispatch chooses `Rock::strike` with a turtle param
+4. Done
+
+Visitors can be used as a way to provide an arbitrary hook into your class for specialized behaviour
+
+Example: Add a visitor to the `Book` hierarchy that allows for adding functionality without recompiling the classes themselves.
