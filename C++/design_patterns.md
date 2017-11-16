@@ -483,3 +483,226 @@ public:
   virtual void visit(Comic &t) = 0;
 };
 ```
+
+Track how many `Books` of each type we have. Group `Books` by author for `Book`, `hero` comic, and topic for text.
+
+We use a `map<string, int>`. We could add a virtual method virtual method `virtual void updateMap(map<string, int> &m)` to our book hierarchy. Or we could write a visitor.
+
+```c++
+class Catalogue : public Book Visitor {
+  map<string, int> theCatalogue;
+public:
+  void visit(Book &b) override {
+    ++theCatalogue[b.getAuthor()];
+  }
+
+  void visit(Text &t) override {
+    ++theCatalogue[t.getTopic()];
+  }
+
+  void visit(Comic &c) override {
+    ++theCatalogue[c.getTopic()];
+  }
+};
+```
+
+Book includes `BookVisitor.h` which implements `text.h` which itself includes `book.h` - **A circular dependency!**
+
+But are all these includes really necessary?
+
+### Compilation Dependency
+
+When does a compilation dependency exist, i.e. when does a file really need to include another?
+
+```c++
+class A {
+  ...
+};
+
+// Has a true compilation dependency
+// `B` needs to know the size of A
+class B : public A {
+  ...
+};
+
+// Has a true compilation dependency
+// `C` also needs to know the size of A
+class C {
+  A myA;
+  ...
+};
+
+// Does not have a true compilation dependency
+// `A*` is a pointer; We don't need to know the size
+class D {
+  A* myA;
+  ...
+};
+
+// Does not have a true compilation dependency
+// `A` is a type signature. Not an implementation. We don't need to know the size
+class E {
+  A f(A a);
+  ...
+};
+```
+
+Which of these need to include `a.h` and which only need a forward decl?
+
+Classes B and C have compilation dependencies because in order for the compiler to know how large `B` and `C` are, it needs to know how large `B` and `C` are it needs to know the size of `A`
+
+Classes D and E do not, the compilaer knows the size of a pointer for `a`, and function prototypes are only used for typechecking purposes.
+
+If there is no compilation dependency, then do not include the file, just forward declare.
+
+If `A` changes, `B` and `C` also need to be recompiled. But `D` and `E` don't.
+
+Now in the implementation filesm a true compilation dependency is almost certain.
+
+```c++
+void D::f() {
+  myA->somefunc();
+}
+```
+
+Do the include in your `cc` files whenever possible.
+
+### `XWindow` class
+
+```c++
+class XWindow {
+  Display *d;       // This is private data
+  Window w;         // We don't know what this means and we don't care
+  int s;
+  GC gc;
+  unsigned long color[10];
+  ...
+}
+```
+
+What if we add or change these private fields? Our client code must now be recompiled. How can we make it so this isn't the case.
+
+The solution is to use the pointer to implemenatation (pImpl) idiom. Create a second class XWindowImpl which stores the implementation details, `XWindow` just has a ptr to it.
+
+```c++
+// XWindowImpl.h
+
+#include <X11/XLib.h>
+
+struct XWindowImpl {
+  Display *d;
+  Window w;
+  ints;
+  GC gc;
+  unsigned long colors[10];
+}
+
+// window.h
+
+class XWindowImpl;
+
+class XWindow {
+  XWindowImpl *pImpl;
+public:
+  // no change
+}
+
+// window.cc
+
+#include "window.h"
+#include "XWindowImpl.h"
+XWindow::XWindow(...)
+: pImpl{new} 
+```
+
+In other methods replace fields `w`, `d`, `s` etc with `pImpl->w`, `pImpl->d` etc
+
+If you confine all `XWindow` private fields within `XWindowImpl`, then only `Window.cc` needs to be recompiled if you change `XWindow` implementation
+
+Generalization: What if there's a muliple types of Windows? E.ge `XWindow` and `YWindow`? Then maje the Impl struct a superclass.
+
+<mark>UML goes here</mark>
+
+The `pImpl` with a hierarchical impl structures is called the bridge pattern
+
+## Measures of Design Quality
+
+Coupling and Cohesion
+
+### Coupling
+
+The degree to which distinct program modules depend on each other
+
+- (low) modules communicate through fn calls with basic params/results
+- modules pass arrays/structs back and forth
+- modules affect each other's control flow
+- modules share global data
+- (high) modules have access to each other implementation (friends)
+
+High Coupling:
+
+- Changes to one module require greater changes to other modules
+- Harder to reuse individual modules
+
+### Cohesion
+
+How closely related the elements of a specific module are
+
+- (low) Arbitrary grouping of unrelated elements (eg `<utility>`)
+- Elements share a common theme, may be some reuse code, but are otherwise unrelated (eg `<algorithm>`)
+- Elements manipulate the state over a lifetime of an object
+- Elements pass data to each other
+- (high) Elements cooperate to perform exactly one task
+
+Low Cohesion:
+
+- Poorly organized code
+- Harder to maintain and use
+
+Our goal is **Low coupling** and **high cohesion**
+
+## MVC: Decouple the Interface
+
+Your primary program classes should not be printing/displaying things
+
+Example:
+
+```c++
+class ChessBoard {
+  ...
+  ...
+  cout << "Your move" << ...
+  ...
+  ...
+};
+```
+
+This is bad design as it inhibits code reuse. What if we want to reuse the `ChessBoard` class but not communicate via std out?
+
+A better solution, give the class stream objects with which it can o input/output.
+
+```c++
+class ChessBoard {
+  istream &in;
+  ostream &out;
+public:
+  ChessBoard(istream &in, ostream &out) {
+    ...
+    ...
+    out << "Your move" << ...
+    ...
+    ...
+  }
+  ...
+};
+```
+
+This is better, but what if we don't want to use streams at all, eg graphics
+
+Your ChessBoard should not be doing any communication at all.
+
+### Single Responsibility Principle
+
+> A class should only have one reason to change
+
+Game state and communication are two reasons.
