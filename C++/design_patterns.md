@@ -661,7 +661,7 @@ Low Cohesion:
 
 Our goal is **Low coupling** and **high cohesion**
 
-## MVC: Decouple the Interface
+## MVC: Decouple the Interface (Model-View-Controller)
 
 Your primary program classes should not be printing/displaying things
 
@@ -706,3 +706,33 @@ Your ChessBoard should not be doing any communication at all.
 > A class should only have one reason to change
 
 Game state and communication are two reasons.
+
+So, our chess board should communicate vio `params` and `results` and occasionally by raising exceptions. Confine the actual user interaction outside the game class. Then you have total freedom to change how the communication is done.
+
+*Question*: So should `main` do all the communication to/from the user/chessboard?
+
+*Answer*: No. You may want to expand or reuse your communication code, and it's hard to reuse that's in a main.
+
+A better solution was to create a `ChessBoard` class just for the chess logic. A MUCH BETTER solution would be to create a new class that handles all user interaction. This class should be distinct from our game state class.
+
+Separate the distinct notions of our data(state), the presentation of the data, and the control of the data.
+
+- Model : This is the main data we are manipulating. (example `ChessBoard`)
+- View : How the model is manipulated
+- Controller : How the model is manipulated
+
+*Picture from Nov 21*
+
+### Model
+
+- Can have multiple views (example text and graphics)
+- Doesn't need to know about their details
+- Can be implemented as a classic observer pattern (or could comminicate through the controller)
+
+### Controller
+
+- Mediates the flow of communication between the view and the model
+- May encapsulate the idea of turn taking, or full-game rules (trade off with model)
+- May communicate with the user for input (or could be done by the view)
+
+By decoupling presentation and control, MVC enhances opportunities for code reuse and adaptability/customization
