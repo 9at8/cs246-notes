@@ -375,3 +375,393 @@ Text &Text::operation=(const Book &b) {
     return *this;
 }
 ```
+
+## How do virtual functions work?
+
+*Get notes from Yatin*
+
+*vtables*
+
+*Dynamic Casting*
+
+### Steps in calling a virtual
+
+1. Follow the vtable ptr to the vtable
+2. Fetch the appropriate fn ptr from table
+3. Execute that fn through the ptr
+
+This means that the decision is made based on the run time type because the compiler stored the appropriate vtable ptr in the object when creating it
+
+Therefore, virtual method incur a small overhead cost.
+
+Also, declaring at least one virtual method means your objects all just got 8 bytes bigger.
+
+## Concretely how does `g++` lay out your objects
+
+In g++:
+
+|||
+|---|---|
+|fields|vptr|
+||...|
+||...|
+||...|
+
+```c++
+class A {
+    int a, c;
+    virtual void f();
+};
+
+class B: public A {
+    int b, d;
+};
+```
+### A Object
+
+||
+|---|
+|vptr|
+|a|
+|c|
+
+### B Object
+
+||
+|---|
+|vptr|
+|a|
+|c|
+|b|
+|d|
+
+## Multiple Inheritance
+
+A class can inherit from more than one base classes
+
+```c++
+class A {
+public:
+    int a;
+};
+
+class B {
+public:
+    int b;
+};
+
+class C: public A, public B {
+public:
+    void f() {
+        cout << a << b << endl;
+    }
+};
+```
+
+*Picture from November 28*
+
+```c++
+D obj;
+obj.a = 5; // which a is this??
+```
+
+This access is ambiguous, so the compiler rejects it. We don't throw if its the `a` hat comes from `B` or our `C`. So we must specify.
+
+`obj.B::a or obj.C::a;`
+
+But is this really what we want? It may be that we do want to distinct `A` components. But more often we probably only want one copy of `A` in our `d`.
+
+This is called the **the deadly diamond of death**
+
+*Picture from November 28*
+
+If we do want only one `A` component. Make `A` a virtual base class and employ `virtual` inheritance.
+
+```c++
+class B: virtual public A {...};
+class c: virtual public A {...};
+```
+
+Example: I/O Stream Hierarchy
+
+*Picture from November 28*
+
+Consider A, B, C, D example usinig virtual inheritance
+
+||
+|---|
+|vptr|
+|A fields|
+|B fields|
+|C fields|
+|D fields|
+
+This should look like a `A*` `B*` `C*` and `D*`
+
+But it doesn't!
+
+So what does g++ do?
+
+|||
+|---|---|
+|vptr|<- ptr to a B or a D (not quite)|
+|B fields|
+|vptr|<- ptr to a C (not quite)|
+|C fields|
+|D fields|
+|vptr|<- ptr to a A|
+|A fields|
+
+B needs to be laid out. So it can find it's A part, but the offset to the A component cannot be known (because you don't know how many classes there are in the hierarchy and the more there are, the greater offset is)
+
+Observe the layout of a simple of a simple B object with virtual inheritance. Remember it has no idea C and D exist.
+
+Thus the distance between the B part and the A part is unknowable at compile time.
+
+Solution: the location of the base class part of the object is stored in the vtables (hence virtual inheritance)
+
+The diagram doesn't look like an A, B, C, D object simultaneously, but slices of it to resemble A, B, C, D.
+
+So what happens is that pointer assignment among A, B, C, D pointers changes the address stored in the ptr.
+
+D *d; // points at the D part
+A *a = d; // changes the address to point at the a part
+
+Under multiple inheritance, `static_cast`, `const_cast`, `dynamic_cast` under multiple inheritance exhibit this behaviour of adjusting the pointers value, `reinterpret_cast` does NOT, and this should exemplify some of the many risks inherent in using this cast.
+
+## Template Functions
+
+```c++
+template <typename T>
+T min(T x, T y) {
+    return x < y ? x : y;
+}
+
+// In order to use this function
+
+int f() {
+    int x = 1, y = 1;
+    int y = min(x, y);
+    return z;
+}
+```
+
+In this case, there's no need to say `min<int>(x, y)`. The compiler can figure it out, based on the types of `x` and `y`.
+
+If the compiler is unable to do type inference, you can always explicitly paramaterize the template type.
+
+char w = min('a', 'c'); // T = char
+auto f = min(1.0, 3.0); // T = double
+
+### For what types `T` can min be used?
+
+For any type where the `operator<` is defined.
+
+Recall:
+
+```c++
+void foreach(abstractIterator &start, &end, int(*f)(int)) {
+    while (start != end) {
+        f(*start);
+        ++start;
+    }
+}
+```
+
+This could work so long:
+- `AbstractIterator` supports `operator*`, `++` and `!=`
+- `f` can be called as a function.
+
+So we can generalize with templates
+
+```c++
+template <typename Iter, typename Func>
+void foreach(Iter start, Iter end, Func f) {
+    // exactly as before
+}
+```
+
+Now `Iter` can be anytype supporting those operators, including raw pointers.
+
+```c++
+void f(int n) {
+    cout << n << endl;
+}
+...
+int a[] = { 1, 2, 3, 4, 5 };
+...
+foreach(a, a+5, f);
+```
+
+## The Algorithm Library (STL)
+
+A suite of template functions, many of these work over Iterators
+
+`#include <algorithm>`
+
+Examples: `for_each`
+
+```c++
+template <typename Iter, typename T>
+Iter find(Iter begin, Iter last, const T &val) {
+    // returns iterator to the first element in [begin, last)
+    // if it matches val
+    // returns last if not
+}
+```
+
+Other functions:
+
+- `count` - like find but returns the number of occurences of values in [begin, last)
+- `copy`
+- `transform` - like copy, but also applies a function
+
+```c++
+template <typename InIter, typename OutIter>
+OutIter copy(InIter begin, InIter last, OutIter result) {
+    // copies one container range from [begin, last) to the containter that result points to
+}
+```
+
+**Note:** Does **NOT** allocate more space if needed in the container result points at, you must make sure you have enough.
+
+Example:
+
+```c++
+vector<int> v{1,2,3,4,5,6,7};
+vector<int> w(4);
+// creates a vector with space for 4 ints
+copy(v.begin(), v.begin() + 5, w.begin());
+
+// -------------------
+
+template <typename InIter, typename OutIter, typename Func>
+OutIter transform(InIter first, InIter last, OutIter result, Func f) {
+    while (first != last) {
+        *result = f(*first);
+        ++first;
+        ++result;
+    }
+    return result;
+}
+```
+
+Focusing on transform, just how generalized is out template code?
+
+1. What can we use for func?
+2. What can we use for InIter/OutIter
+
+So Func needs to be callable as a function. WHat other than functions can provide that behaviour?
+
+We can overload `operator()` for our classes
+
+```c++
+class Plus {
+    int m;
+
+public:
+    Plus(int m) : m{m} {}
+    int operator(int n) { return m + n; }
+}
+
+transform(v.begin(), v.end(), w.begin(), Plus{5});
+
+The big advantage of using function objects over functions is that they can maintain state
+
+class IncreasingPlus {
+    int m = 0;
+public:
+    int operator()(int m) {
+        return n + (m++);
+    }
+
+    void reset() {
+        m = 0;
+    }
+}
+```
+
+How many ints in a vector are even?
+
+```c++
+vector<int> v{...};
+
+bool even(int n) {
+    return !(n % 2);
+}
+
+int x = count_if(v.begin(), v.end(), even);
+```
+
+## Lambdas
+
+```c++
+int x = count_if(v.begin(), v.end(), [](int n) {
+    return !(n % 2);
+});
+```
+
+## Iterators
+
+An iterator is anything that supports these operators: `*`, `++` and `!=`
+
+So that means that we can apply the notion of iterators to other no container types, such as streams.
+
+Example:
+
+```c++
+#include <iterators>
+
+vector<int> v {1,2,3,4,5};
+
+ostream_iterator<int> out {cout, ", "};
+
+copy(v.begin(), v.end(), out);
+// prints 1, 2, 3, 4, 5, 
+```
+
+Consider:
+
+```c++
+vector<int> v {1, 2, 3, 4, 5};
+vector<int> w;
+
+copy(v.begin(), v.end(), w.begin());
+// WRONG!
+```
+
+Remember, copy can't allocate new space for you since it doesn't even know what `w` is iterating over.
+
+But what if we had a specialized iterator whose assigment operator inserts a new item?
+
+```c++
+vector<int> v {1,2,3,4,5};
+vector<int> w;
+
+copy(v.begin(), v.end(), back_iterator(w));
+```
+
+Now `v` is copied to `w` with space allocated as needed.
+
+> Take the time to learn to work with Iterators and the algorithm library, and get confortable with them (also the rest of the STL). They can dramatically reduce the length of your code and reduce opportunities for bugs in your programs.
+
+## Template Meta Programming
+
+Offload computation to the compiler
+
+```c++
+template<int n>
+struct Fact {
+    enum { val = Fact<n - 1>::val * n };
+};
+
+template<>
+struct Fact<0> {
+    enum { val = 1 };
+}
+
+int main() {
+    // runs in O(1) !!!
+    int n = Fact<10>::val;
+}
+```
