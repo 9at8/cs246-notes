@@ -95,7 +95,7 @@ Separate the distinct notions of our data(state), the presentation of the data, 
 - View : How the model is manipulated
 - Controller : How the model is manipulated
 
-*Picture from Nov 21*
+![MVC](res/MVC.jpg)
 
 ### Model
 

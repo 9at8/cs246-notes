@@ -4,7 +4,7 @@ Suppose we want to enhance an object (add features/functionality to it on runtim
 
 We start with a basic window. We want to add a scroll bar and a menu for selecting options. We would like to choose these enhancements at runtime.
 
-*Picture from November 9*
+![Decorator Pattern UML](res/DecoratorPattern.jpg)
 
 The class component defines the interface: the operations your objects will provide. The class `ConcreteComponent` implements the interface the decorator classes inherit from `Decorator` which inherits from the `Component` itself.
 
@@ -12,7 +12,7 @@ For example, a `Window` with a `Scrollbar` is a kind of `Window`, abd has a poin
 
 All of these inherit from a `Window`. So window methods can be called on them polymorphically.
 
-*Pizza picture from November 9*
+![Pizza Decorator Pattern UML](res/PizzaDecoratorPattern.jpg)
 
 ```c++
 class Pizza {

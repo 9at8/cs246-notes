@@ -68,7 +68,8 @@ class C {
 C b,d;
 ```
 
-*Picture from Nov 30 2017 (Robert's notes)*
+![How virtual functions work - Robert Riachi's Notes](res/VirtualFunctions.jpg)
+*Taken from Robert Riachi's notes*
 
 ## Steps in calling a virtual
 

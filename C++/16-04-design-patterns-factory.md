@@ -2,7 +2,7 @@
 
 Problem: Write a video game with two types of enemies, bullets and turtles. The system should randomly spawns Bullets and Turtles, but Bullets should become more frequent in later levels.
 
-*Picture from November 9*
+![Factory Pattern UML](res/FactoryPattern.jpg)
 
 Since we never know what enemy is going to spawn next we can't call constructors directly. We also don't want to hard code the Policy.
 
