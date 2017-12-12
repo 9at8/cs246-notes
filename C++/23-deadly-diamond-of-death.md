@@ -61,7 +61,7 @@ public:
 };
 ```
 
-*Picture from November 28*
+![Multiple Inheritance](res/MultipleInheritance.jpg)
 
 ```c++
 D obj;
@@ -76,7 +76,7 @@ But is this really what we want? It may be that we do want to distinct `A` compo
 
 This is called the **the deadly diamond of death**
 
-*Picture from November 28*
+![Deadly Diamond of Death](res/DeadlyDiamondOfDeath.jpg)
 
 If we do want only one `A` component. Make `A` a virtual base class and employ `virtual` inheritance.
 
@@ -87,7 +87,7 @@ class c: virtual public A {...};
 
 Example: I/O Stream Hierarchy
 
-*Picture from November 28*
+![I/O Stream Hierarchy](res/IOStream.jpg)
 
 Consider A, B, C, D example using virtual inheritance
 

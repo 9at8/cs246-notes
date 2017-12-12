@@ -65,8 +65,6 @@ But:
 - It is wasteful to copy data from a temp; why not just steal it instead and save cost of a deep copy
 - We need to be able to tell if other is a ref to a temp or a real object
 
-**_Pictures from 12 Oct 2017_**
-
 R values are temp values, such as the return value from a function; Accessed using double `&` (`&&`)
 
 ---

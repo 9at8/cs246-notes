@@ -9,7 +9,7 @@ Publish subscribe model
 
 Publishers in the form of a spreadsheet cells and subscribers in the form of graphs.
 
-*Picture from November 7*
+![Observer Pattern UML](res/ObserverPattern.jpg)
 
 The abstract class `subject` has all the common code to all subjects. The abstract class `observer` holds only the interface common to all observers.
 
