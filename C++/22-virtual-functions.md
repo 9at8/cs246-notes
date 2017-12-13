@@ -62,7 +62,7 @@ class C {
     virtual void f();
     virtual void g();
     void h();
-    irtual ~C();
+    virtual ~C();
 };
 
 C b,d;
