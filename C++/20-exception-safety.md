@@ -208,10 +208,10 @@ void h() {
 // dtor frees MyClass objects if appropriate, array is freed.
 ```
 
-In this case we don't hace to do amy explicit deallocation.
+In this case we don't hace to do any explicit deallocation.
 
 Consider the method:
-`vector<T>::emplace_back
+`vector<T>::emplace_back`
 
 - offers strong guarantee
 - `if (size == cap)`
