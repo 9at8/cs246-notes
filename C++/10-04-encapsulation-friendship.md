@@ -16,10 +16,10 @@ public:
     int &operator*();
     Iterator& operator++();
     bool operator!=(const Iterator &it);
-    Iterator begin();
-    Iterator end();
-    void addToFront(int n);
   };
+  Iterator begin();
+  Iterator end();
+  void addToFront(int n);
 };
 
 // user:
