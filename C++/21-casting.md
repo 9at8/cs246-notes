@@ -125,7 +125,7 @@ With dynamic reference casting, we can now solve the polymorphic assignment prob
 Text &Text::operation=(const Book &b) {
     const Text &textOther = dynamic_cast<Text &>(b);
     // throw if b is not a text.
-    Book::operator=(other);
+    Book::operator=(b); // ?????
     topic = textOther.topic;
     return *this;
 }
