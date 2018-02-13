@@ -161,7 +161,7 @@ Text &Text:operator=(const Text &o) {
 
 Text::Text(Text &&other) : Book{std::move(other)}, topic{other.topic} {}
 
-Text &Text:operator=(const Text &o) {
+Text &Text:operator=(const Text &&o) {
   Book::operator=(std::move(o));
   topic = o.topic;
   return *this;
