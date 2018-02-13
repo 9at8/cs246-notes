@@ -20,7 +20,7 @@ struct Grade {
   int theGrade;
 }
 
-ostream& operator>>(ostream &out, const Grade &g) {
+ostream& operator<<(ostream &out, const Grade &g) {
   out << y.theGrade << "%";
   return out;
 }
