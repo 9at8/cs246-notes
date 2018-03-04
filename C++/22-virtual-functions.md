@@ -1,6 +1,6 @@
 # How do virtual functions work?
 
-Consider teo classes
+Consider two classes
 
 ```c++
 class Vec {
